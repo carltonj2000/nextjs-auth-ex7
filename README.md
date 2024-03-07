@@ -24,4 +24,8 @@ npm i drizzle-orm @vercel/postgres
 npm i -D drizzle-kit
 npm i pg
 npm install dotenv --save
+npx shadcn-ui@latest init
+npx shadcn-ui@latest add form button input toast card
+npm install react-hook-form
+npm install @hookform/resolvers
 ```

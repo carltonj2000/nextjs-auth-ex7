@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SignUpForm from "./sign-up-form";
+import SignInForm from "./sign-in-form";
 import { validateRequest } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export default async function SignUpPage() {
+export default async function SignInPage() {
   const { user } = await validateRequest();
 
   if (user) {
@@ -13,10 +13,10 @@ export default async function SignUpPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create A Free Account</CardTitle>
+        <CardTitle>Sign In</CardTitle>
       </CardHeader>
       <CardContent>
-        <SignUpForm />
+        <SignInForm />
       </CardContent>
     </Card>
   );
