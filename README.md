@@ -1,5 +1,12 @@
 # Next JS with Lucia Auth
 
+Some commands
+
+```bash
+npm run db:push
+npm run db:studio
+```
+
 ## Creation History
 
 The code in this repository is based on:
@@ -15,4 +22,6 @@ npm install lucia oslo
 npm install @lucia-auth/adapter-drizzle
 npm i drizzle-orm @vercel/postgres
 npm i -D drizzle-kit
+npm i pg
+npm install dotenv --save
 ```
