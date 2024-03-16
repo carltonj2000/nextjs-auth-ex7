@@ -5,6 +5,8 @@ Some commands
 ```bash
 npm run db:push
 npm run db:studio
+# generate random secret
+openssl rand -hex 12
 ```
 
 ## Creation History
@@ -28,4 +30,22 @@ npx shadcn-ui@latest init
 npx shadcn-ui@latest add form button input toast card
 npm install react-hook-form
 npm install @hookform/resolvers
+```
+
+```bash
+npm i jsonwebtoken
+npm i -D @types/jsonwebtoken
+npm i argon2
+```
+
+```bash
+npm i usehooks-ts
+```
+
+## SQL
+
+```sql
+delete from session;
+delete from email_verification;
+delete from "user";
 ```

@@ -18,13 +18,15 @@ import { toast } from "@/components/ui/use-toast";
 import { SignUpFormSchema } from "@/app/types";
 import { signUp } from "./actions";
 import { useRouter } from "next/navigation";
+import { ToastAction } from "@/components/ui/toast";
+import Link from "next/link";
 
 export default function SignUpForm() {
   const router = useRouter();
   const form = useForm<z.infer<typeof SignUpFormSchema>>({
     resolver: zodResolver(SignUpFormSchema),
     defaultValues: {
-      username: "carltonj2000",
+      email: "carlton.joseph@gmail.com",
       password: "password",
       confirmPassword: "password",
     },
@@ -39,6 +41,11 @@ export default function SignUpForm() {
       toast({
         variant: "default",
         description: "Account Created Successfully!",
+        action: (
+          <ToastAction altText="Verify">
+            <Link href={result.data?.url!}>Verify</Link>
+          </ToastAction>
+        ),
       });
       router.push("/");
     }
@@ -48,12 +55,12 @@ export default function SignUpForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="username"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input placeholder="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
