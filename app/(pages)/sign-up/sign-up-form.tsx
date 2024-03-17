@@ -40,7 +40,7 @@ export default function SignUpForm() {
     } else {
       toast({
         variant: "default",
-        description: "Account Created Successfully!",
+        description: "Verification Email Sent. Please verify your email!",
         action: (
           <ToastAction altText="Verify">
             <Link href={result.data?.url!}>Verify</Link>

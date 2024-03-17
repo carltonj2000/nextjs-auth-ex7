@@ -1,5 +1,9 @@
 # Next JS with Lucia Auth
 
+You need a google app password form nodemailer to work.
+I think you generate an app password via:
+Google Account -> Security -> 2 Step Verification -> App Password
+
 Some commands
 
 ```bash
@@ -40,6 +44,8 @@ npm i argon2
 
 ```bash
 npm i usehooks-ts
+npm i nodemailer
+npm i -D @types/nodemailer
 ```
 
 ## SQL

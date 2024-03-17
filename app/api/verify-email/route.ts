@@ -47,7 +47,7 @@ export const GET = async (req: NextRequest) => {
       .delete(emailVerificationTable)
       .where(eq(emailVerificationTable.id, ev.id));
 
-    const session = await lucia.createSession(decoded.email, {
+    const session = await lucia.createSession(user.id, {
       expiresIn: 60 * 60 * 24 * 30,
     });
 

@@ -9,6 +9,8 @@ import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { generateId } from "lucia";
 import jwt from "jsonwebtoken";
+import { CounterStartDefault } from "./vars";
+import { SendEmail } from "@/lib/email";
 
 export const signIn = async (values: z.infer<typeof SignInFormSchema>) => {
   const result = SignInFormSchema.safeParse(values);
@@ -35,22 +37,63 @@ export const signIn = async (values: z.infer<typeof SignInFormSchema>) => {
       return { error: "Invalid user credentials!" };
     }
 
-    if (!user[0].isEmailVerified) {
-      return { error: "Email not verified!", key: "email_not_verified" };
+    if (user[0].isEmailVerified) {
+      const session = await lucia.createSession(user[0].id, {
+        expiresIn: 60 * 60 * 24 * 30,
+      });
+
+      const sessionCookie = lucia.createSessionCookie(session.id);
+      cookies().set(
+        sessionCookie.name,
+        sessionCookie.value,
+        sessionCookie.attributes
+      );
+
+      return { success: true };
     }
 
-    const session = await lucia.createSession(user[0].id, {
-      expiresIn: 60 * 60 * 24 * 30,
-    });
+    const email_verification = await db
+      .select()
+      .from(emailVerificationTable)
+      .where(eq(emailVerificationTable.userId, user[0].id));
+    if (!email_verification || email_verification.length === 0) {
+      const code = Math.random().toString(36).substring(2, 8);
+      await db.insert(emailVerificationTable).values({
+        id: generateId(15),
+        userId: user[0].id,
+        code,
+        sentAt: new Date(),
+      });
+      if (!process.env.JWT_SECRET) {
+        console.error("JWT Secrete Not Set In Env.");
+        return { success: false };
+      }
+      const token = jwt.sign(
+        { email: result.data.email, code },
+        process.env.JWT_SECRET,
+        { expiresIn: "30m" }
+      );
 
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    cookies().set(
-      sessionCookie.name,
-      sessionCookie.value,
-      sessionCookie.attributes
-    );
-
-    return { success: true };
+      const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/verify-email?token=${token}`;
+      await SendEmail({
+        to: "carlton.joseph@gmail.com",
+        subject: "Activate Account",
+        html: `<a href="${url}">Active Account</a>`,
+      });
+      console.log({ url });
+      return { success: true, data: { user: user[0].id, url } };
+    } else {
+      const sentAt = new Date(email_verification[0].sentAt);
+      const msPassed = new Date().getTime() - sentAt.getTime();
+      const isOneMinPassed = msPassed > CounterStartDefault * 1000;
+      if (isOneMinPassed) {
+        return { error: "Email not verified!", key: "email_not_verified" };
+      }
+      return {
+        error: "Request verification code too soon!",
+        timeLeft: Math.round(CounterStartDefault - msPassed / 1000),
+      };
+    }
   } catch (error: any) {
     return { error: error?.message };
   }
@@ -85,11 +128,11 @@ export const sendVerificationLink = async (email: string, password: string) => {
 
     const sentAt = new Date(oldVerification.sentAt);
     const msPassed = new Date().getTime() - sentAt.getTime();
-    const isOneMinPassed = msPassed > 60000;
+    const isOneMinPassed = msPassed > CounterStartDefault * 1000;
     if (!isOneMinPassed) {
       return {
         error: "Request verification code too soon!",
-        timeLeft: msPassed / 1000,
+        timeLeft: Math.round(CounterStartDefault - msPassed / 1000),
       };
     }
 
@@ -108,6 +151,11 @@ export const sendVerificationLink = async (email: string, password: string) => {
     });
 
     const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/verify-email?token=${token}`;
+    await SendEmail({
+      to: "carlton.joseph@gmail.com",
+      subject: "Activate Account",
+      html: `<a href="${url}">Active Account</a>`,
+    });
     console.log({ url });
     return { success: "Email sent!", url };
   } catch (error: any) {

@@ -16,17 +16,20 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 
 import { SignInFormSchema } from "@/app/types";
-import { sendVerificationLink, signIn } from "./actions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ToastAction } from "@/components/ui/toast";
 import Link from "next/link";
 import { useCountdown } from "usehooks-ts";
 
+import { sendVerificationLink, signIn } from "./actions";
+import { CounterStartDefault } from "./vars";
+
 export default function SignInForm() {
   const [showVerificationLink, showVerificationLinkSet] = useState(false);
   const router = useRouter();
-  const [countStart, countStartSet] = useState(60);
+  const [countStart, countStartSet] = useState(CounterStartDefault);
+  const [runCount, runCountSet] = useState(false);
   const [count, { startCountdown, stopCountdown, resetCountdown }] =
     useCountdown({
       countStart,
@@ -34,11 +37,21 @@ export default function SignInForm() {
     });
 
   useEffect(() => {
-    if (count === 0) {
+    if (runCount) {
+      console.log("count start", countStart);
       resetCountdown();
+      startCountdown();
       showVerificationLinkSet(true);
+      runCountSet(false);
     }
-  }, [count, resetCountdown]);
+  }, [
+    countStart,
+    resetCountdown,
+    startCountdown,
+    showVerificationLink,
+    runCount,
+    runCountSet,
+  ]);
 
   const form = useForm<z.infer<typeof SignInFormSchema>>({
     resolver: zodResolver(SignInFormSchema),
@@ -55,6 +68,12 @@ export default function SignInForm() {
       toast({ variant: "destructive", description: result.error });
       if (result?.key === "email_not_verified") {
         showVerificationLinkSet(true);
+        return;
+      }
+      if (result.timeLeft) {
+        countStartSet(result.timeLeft);
+        runCountSet(true);
+        return;
       }
     } else {
       toast({
@@ -74,12 +93,14 @@ export default function SignInForm() {
     console.log({ from: "onReqVerification", result });
     if (result.timeLeft) {
       countStartSet(result.timeLeft);
-      resetCountdown();
+      runCountSet(true);
       return;
     }
     if (result.error) {
       toast({ variant: "destructive", description: result.error });
     } else {
+      countStartSet(CounterStartDefault);
+      runCountSet(true);
       toast({
         variant: "default",
         description: "New verification link sent!",
@@ -130,9 +151,9 @@ export default function SignInForm() {
           type="submit"
           className="w-full mt-1"
           onClick={onReqVerification}
-          disabled={count > 0 && count < 60}
+          disabled={count > 0 && count <= CounterStartDefault}
         >
-          Resend Verification Link {count == 60 ? "" : `In ${count}s`}
+          Resend Verification Link {count == 0 ? "" : `In ${count}s`}
         </Button>
       )}
     </Form>

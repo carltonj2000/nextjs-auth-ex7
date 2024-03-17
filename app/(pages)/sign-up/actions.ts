@@ -8,6 +8,7 @@ import { emailVerificationTable, userTable } from "@/app/lib/db/schema";
 // import { lucia } from "@/lib/auth";
 // import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { SendEmail } from "@/lib/email";
 
 export const signUp = async (values: z.infer<typeof SignUpFormSchema>) => {
   const result = SignUpFormSchema.safeParse(values);
@@ -60,6 +61,11 @@ export const signUp = async (values: z.infer<typeof SignUpFormSchema>) => {
     );
 
     const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/verify-email?token=${token}`;
+    await SendEmail({
+      to: "carlton.joseph@gmail.com",
+      subject: "Activate Account",
+      html: `<a href="${url}">Active Account</a>`,
+    });
     console.log({ url });
     return { success: true, data: { userId, url } };
   } catch (error: any) {
