@@ -22,7 +22,11 @@ import { ToastAction } from "@/components/ui/toast";
 import Link from "next/link";
 import { useCountdown } from "usehooks-ts";
 
-import { sendVerificationLink, signIn } from "./actions";
+import {
+  createGoogleAuthorizationURL,
+  sendVerificationLink,
+  signIn,
+} from "./actions";
 import { CounterStartDefault } from "./vars";
 
 export default function SignInForm() {
@@ -38,7 +42,6 @@ export default function SignInForm() {
 
   useEffect(() => {
     if (runCount) {
-      console.log("count start", countStart);
       resetCountdown();
       startCountdown();
       showVerificationLinkSet(true);
@@ -63,7 +66,7 @@ export default function SignInForm() {
 
   async function onSubmit(values: z.infer<typeof SignInFormSchema>) {
     const result = await signIn(values);
-    console.log({ from: "onSubmit", result });
+    ({ from: "onSubmit", result });
     if (result.error) {
       toast({ variant: "destructive", description: result.error });
       if (result?.key === "email_not_verified") {
@@ -90,7 +93,6 @@ export default function SignInForm() {
       form.getValues("email"),
       form.getValues("password")
     );
-    console.log({ from: "onReqVerification", result });
     if (result.timeLeft) {
       countStartSet(result.timeLeft);
       runCountSet(true);
@@ -113,49 +115,68 @@ export default function SignInForm() {
     }
   }
 
+  const onGoogleSignInClicked = async () => {
+    const res = await createGoogleAuthorizationURL();
+    if (!res.success) {
+      toast({ variant: "destructive", description: res.message });
+    } else {
+      window.location.href = res.data?.toString()!;
+    }
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>email</FormLabel>
-              <FormControl>
-                <Input placeholder="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input placeholder="******" type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full">
-          Submit
+    <>
+      <div className="w-full flex justify-center">
+        <Button className="w-full" onClick={() => onGoogleSignInClicked()}>
+          Sign in with Google
         </Button>
-      </form>
-      {showVerificationLink && (
-        <Button
-          type="submit"
-          className="w-full mt-1"
-          onClick={onReqVerification}
-          disabled={count > 0 && count <= CounterStartDefault}
-        >
-          Resend Verification Link {count == 0 ? "" : `In ${count}s`}
-        </Button>
-      )}
-    </Form>
+      </div>
+      <div className="w-full flex justify-center py-2 border-t border-b border-gray-300 my-5">
+        Or with your email and password
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input placeholder="******" type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full">
+            Submit
+          </Button>
+        </form>
+        {showVerificationLink && (
+          <Button
+            type="submit"
+            className="w-full mt-1"
+            onClick={onReqVerification}
+            disabled={count > 0 && count <= CounterStartDefault}
+          >
+            Resend Verification Link {count == 0 ? "" : `In ${count}s`}
+          </Button>
+        )}
+      </Form>
+    </>
   );
 }

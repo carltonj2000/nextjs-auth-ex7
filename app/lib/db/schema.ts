@@ -5,6 +5,8 @@ export const userTable = pgTable("user", {
   hashedPassword: text("hashed_password"),
   email: text("email").notNull().unique(),
   isEmailVerified: boolean("is_email_verified").notNull().default(false),
+  profilePictureUrl: text("profile_picture_url"),
+  name: text("name"),
 });
 
 export const emailVerificationTable = pgTable("email_verification", {
@@ -24,6 +26,21 @@ export const sessionTable = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => userTable.id),
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true,
+    mode: "date",
+  }).notNull(),
+});
+
+export const oauthAccountTable = pgTable("oauth_account", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => userTable.id),
+  provider: text("provider").notNull(), // google, github
+  providerUserId: text("provider_user_id").notNull(),
+  refreshToken: text("refresh_token"),
+  accessToken: text("access_token").notNull(),
   expiresAt: timestamp("expires_at", {
     withTimezone: true,
     mode: "date",

@@ -66,10 +66,8 @@ export const signUp = async (values: z.infer<typeof SignUpFormSchema>) => {
       subject: "Activate Account",
       html: `<a href="${url}">Active Account</a>`,
     });
-    console.log({ url });
     return { success: true, data: { userId, url } };
   } catch (error: any) {
     return { error: error?.message };
   }
-  console.log({ values, result });
 };

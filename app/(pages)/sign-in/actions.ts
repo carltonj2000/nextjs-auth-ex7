@@ -11,6 +11,8 @@ import { generateId } from "lucia";
 import jwt from "jsonwebtoken";
 import { CounterStartDefault } from "./vars";
 import { SendEmail } from "@/lib/email";
+import { generateCodeVerifier, generateState } from "arctic";
+import { google } from "@/lib/oauth";
 
 export const signIn = async (values: z.infer<typeof SignInFormSchema>) => {
   const result = SignInFormSchema.safeParse(values);
@@ -80,7 +82,6 @@ export const signIn = async (values: z.infer<typeof SignInFormSchema>) => {
         subject: "Activate Account",
         html: `<a href="${url}">Active Account</a>`,
       });
-      console.log({ url });
       return { success: true, data: { user: user[0].id, url } };
     } else {
       const sentAt = new Date(email_verification[0].sentAt);
@@ -156,9 +157,34 @@ export const sendVerificationLink = async (email: string, password: string) => {
       subject: "Activate Account",
       html: `<a href="${url}">Active Account</a>`,
     });
-    console.log({ url });
     return { success: "Email sent!", url };
   } catch (error: any) {
     return { error: error?.message };
+  }
+};
+
+export const createGoogleAuthorizationURL = async () => {
+  try {
+    const state = generateState();
+    const codeVerifier = generateCodeVerifier();
+
+    cookies().set("codeVerifier", codeVerifier, { httpOnly: true });
+
+    cookies().set("state", state, { httpOnly: true });
+
+    const authorizationURL = await google.createAuthorizationURL(
+      state,
+      codeVerifier,
+      {
+        scopes: ["profile", "email"],
+      }
+    );
+    // const tokens = await google.validateAuthorizationCode(code, codeVerifier);
+    return {
+      success: true,
+      data: authorizationURL.toString(),
+    };
+  } catch (e: any) {
+    return { success: false, message: e?.message };
   }
 };

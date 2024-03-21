@@ -4,11 +4,10 @@ const user = process.env.GMAIL_USER;
 const pass = process.env.GMAIL_PASSWORD;
 
 if (!user || !pass) {
-  console.log("Email user or password env not set.");
+  console.error("Email user or password env not set.");
   process.exit(0);
 }
 
-console.log({ user, pass });
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -32,5 +31,5 @@ export async function SendEmail({
     html,
   });
 
-  console.log("Message sent: %s", info.messageId);
+  console.log("EMail Message sent: %s", info.messageId);
 }
