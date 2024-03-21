@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { validateRequest } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { signOut } from "./actions";
+import ClientUser from "./clientUser";
 
 export default async function Home() {
   const { user } = await validateRequest();
   if (!user) {
-    redirect("/sign-in");
+    return redirect("/sign-in");
   }
   return (
     <main>
@@ -19,6 +20,8 @@ export default async function Home() {
       <form action={signOut}>
         <Button type="submit">Sign Out</Button>
       </form>
+
+      <ClientUser />
     </main>
   );
 }

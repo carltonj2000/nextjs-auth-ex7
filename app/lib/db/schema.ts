@@ -1,5 +1,6 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
+export const roleEnums = pgEnum("role", ["user", "admin"]);
 export const userTable = pgTable("user", {
   id: text("id").primaryKey(),
   hashedPassword: text("hashed_password"),
@@ -7,6 +8,7 @@ export const userTable = pgTable("user", {
   isEmailVerified: boolean("is_email_verified").notNull().default(false),
   profilePictureUrl: text("profile_picture_url"),
   name: text("name"),
+  role: roleEnums("role").notNull().default("user"),
 });
 
 export const emailVerificationTable = pgTable("email_verification", {

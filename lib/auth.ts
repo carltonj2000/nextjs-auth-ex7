@@ -2,6 +2,7 @@ import { Lucia } from "lucia";
 import adapter from "@/app/lib/db/adapter";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { roleEnums } from "@/app/lib/db/schema";
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
@@ -25,8 +26,9 @@ declare module "lucia" {
 }
 
 interface DatabaseUserAttributes {
-  name: string;
-  profilePicture: string;
+  email: string;
+  role: (typeof roleEnums.enumValues)[number];
+  profilePictureUrl: string;
 }
 
 export const validateRequest = cache(async () => {

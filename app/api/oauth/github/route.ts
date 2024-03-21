@@ -36,7 +36,6 @@ export const GET = async (req: NextRequest) => {
 
     const githubData = (await githubRes.json()) as any;
 
-    console.log({ githubData });
     await db.transaction(async (trx) => {
       const user = await trx.query.userTable.findFirst({
         where: eq(userTable.id, githubData.id),
