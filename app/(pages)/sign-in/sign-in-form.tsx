@@ -23,6 +23,7 @@ import Link from "next/link";
 import { useCountdown } from "usehooks-ts";
 
 import {
+  createGitHubAuthorizationURL,
   createGoogleAuthorizationURL,
   sendVerificationLink,
   signIn,
@@ -124,11 +125,23 @@ export default function SignInForm() {
     }
   };
 
+  const onGitHubSignInClicked = async () => {
+    const res = await createGitHubAuthorizationURL();
+    if (!res.success) {
+      toast({ variant: "destructive", description: res.message });
+    } else {
+      window.location.href = res.data?.toString()!;
+    }
+  };
+
   return (
     <>
-      <div className="w-full flex justify-center">
+      <div className="w-full flex flex-col justify-center gap-2">
         <Button className="w-full" onClick={() => onGoogleSignInClicked()}>
           Sign in with Google
+        </Button>
+        <Button className="w-full" onClick={() => onGitHubSignInClicked()}>
+          Sign in with GitHub
         </Button>
       </div>
       <div className="w-full flex justify-center py-2 border-t border-b border-gray-300 my-5">

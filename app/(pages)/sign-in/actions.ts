@@ -12,7 +12,7 @@ import jwt from "jsonwebtoken";
 import { CounterStartDefault } from "./vars";
 import { SendEmail } from "@/lib/email";
 import { generateCodeVerifier, generateState } from "arctic";
-import { google } from "@/lib/oauth";
+import { github, google } from "@/lib/oauth";
 
 export const signIn = async (values: z.infer<typeof SignInFormSchema>) => {
   const result = SignInFormSchema.safeParse(values);
@@ -179,7 +179,24 @@ export const createGoogleAuthorizationURL = async () => {
         scopes: ["profile", "email"],
       }
     );
-    // const tokens = await google.validateAuthorizationCode(code, codeVerifier);
+    return {
+      success: true,
+      data: authorizationURL.toString(),
+    };
+  } catch (e: any) {
+    return { success: false, message: e?.message };
+  }
+};
+
+export const createGitHubAuthorizationURL = async () => {
+  try {
+    const state = generateState();
+
+    cookies().set("state", state, { httpOnly: true });
+
+    const authorizationURL = await github.createAuthorizationURL(state, {
+      scopes: ["user:email"],
+    });
     return {
       success: true,
       data: authorizationURL.toString(),

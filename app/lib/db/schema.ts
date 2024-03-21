@@ -3,7 +3,7 @@ import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 export const userTable = pgTable("user", {
   id: text("id").primaryKey(),
   hashedPassword: text("hashed_password"),
-  email: text("email").notNull().unique(),
+  email: text("email").unique(),
   isEmailVerified: boolean("is_email_verified").notNull().default(false),
   profilePictureUrl: text("profile_picture_url"),
   name: text("name"),
@@ -44,5 +44,5 @@ export const oauthAccountTable = pgTable("oauth_account", {
   expiresAt: timestamp("expires_at", {
     withTimezone: true,
     mode: "date",
-  }).notNull(),
+  }),
 });
